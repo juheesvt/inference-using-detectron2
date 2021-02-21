@@ -35,33 +35,30 @@ def parse_args(args) -> argparse:
     return parser.parse_args(args)
 
 
-def config(model: str) -> DefaultPredictor():
+def config(model: str) -> DefaultPredictor:
     cfg = get_cfg()
     cfg.merge_from_file(model_zoo.get_config_file(model))
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(model)
     return DefaultPredictor(cfg), cfg
 
 
-def inference(image_path: str, save_path: str, predictor: DefaultPredictor(), cfg: get_cfg()) -> None:
+def inference(image_path: str, save_path: str, predictor: DefaultPredictor, cfg: get_cfg) -> None:
     images = glob(image_path + '/*')
-
+    
     for image in images:
-        try:
-            read_img = cv2.imread(image)
-            img_name = image.split("/")[-1]
+        read_img = cv2.imread(image)
+        img_name = image.split("/")[-1]
 
-            # inference
-            outputs = predictor(read_img)
+        # inference
+        outputs = predictor(read_img)
 
-            # Visualization
-            v = Visualizer(read_img[:, :, ::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
-            out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+        # Visualization
+        v = Visualizer(read_img[:, :, ::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
+        out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
 
-            # save image
-            save_path = os.path.join(save_path + "/" + img_name)
-            cv2.imwrite(save_path, out.get_image()[:, :, ::-1])
-        except:
-            pass
+        # save image
+        cv2.imwrite(save_path + "/" + img_name, out.get_image()[:, :, ::-1])
+
 
 def main(args=None):
 
